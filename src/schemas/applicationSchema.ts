@@ -53,7 +53,7 @@ export const applicationSchema = z
       data.salaryMax === "" ||
       Number(data.salaryMax) >= Number(data.salaryMin),
     {
-      message: "Maximum salary must be at least the minimum salary",
+      message: "Maximum salary must not be lower than the minimum salary",
       path: ["salaryMax"],
     },
   )
