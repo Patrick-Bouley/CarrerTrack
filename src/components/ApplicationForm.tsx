@@ -1,11 +1,23 @@
-import { useEffect } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View,} from "react-native";
-import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import FormField from "./FormField";
-import { applicationSchema, type ApplicationFormData,} from "../schemas/applicationSchema";
-import type { Application } from "../storage/applicationStorage";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useApplications } from "../context/ApplicationContext";
+import {
+  applicationSchema,
+  type ApplicationFormData,
+} from "../schemas/applicationSchema";
+import type { Application } from "../storage/applicationStorage";
+import FormField from "./FormField";
 
 // The same form is used for adding and editing applications.
 // An existing application is only passed in when editing.
@@ -28,7 +40,8 @@ const getToday = () => {
 // Form used to create or edit a job application.
 const ApplicationForm = ({ application, onSaved }: ApplicationFormProps) => {
   // Get the add and update functions from our Applications Context.
-  const { addApplication, updateApplication } = useApplications();
+  const { addApplication, updateApplication, removeApplication } =
+    useApplications();
 
   // React Hook Form manages our input values and validation errors.
   // The Zod resolver connects our schema to the form.
@@ -102,6 +115,29 @@ const ApplicationForm = ({ application, onSaved }: ApplicationFormProps) => {
 
     // Return to the previous screen after saving.
     onSaved();
+  };
+
+  // Ask for confirmation before deleting an application.
+  const handleDelete = () => {
+    if (!application) {
+      return;
+    }
+
+    Alert.alert(
+      "Delete Application",
+      "Are you sure you want to delete this application?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            removeApplication(application.id);
+            onSaved();
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -336,6 +372,13 @@ const ApplicationForm = ({ application, onSaved }: ApplicationFormProps) => {
             {application ? "Update Application" : "Save Application"}
           </Text>
         </Pressable>
+
+        {/* Only allow deletion when editing an existing application. */}
+        {application && (
+          <Pressable style={styles.deleteButton} onPress={handleDelete}>
+            <Text style={styles.deleteText}>Delete Application</Text>
+          </Pressable>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -385,6 +428,19 @@ const styles = StyleSheet.create({
   },
   saveText: {
     color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  deleteButton: {
+    borderWidth: 1,
+    borderColor: "#dc2626",
+    borderRadius: 6,
+    padding: 14,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  deleteText: {
+    color: "#dc2626",
     fontSize: 16,
     fontWeight: "bold",
   },
